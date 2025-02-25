@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<body>
+<div class="nav" th:replace="~{ nav.html::navbar }"></div>
+
+<div class="card" th:each=" i :${items}">
+    <img th:src="@{${i.imgUrl}}" alt="no image"/>
+    <div>
+        <a th:href="@{ '/detail/' + ${i.id}}">
+            <h4 th:text="${i.title}"></h4>
+
+        </a>
+        <p th:text="${i.price} + 원">원</p>
+        <a th:href="@{'/modify/' + ${i.id}}">✏️</a>
+        <span th:onclick="fetch('/item?selId=[[${i.id}]]', { method : 'DELETE'})
+        .then(r => r.text())
+        .then(() => {
+            location.reload();
+        })
+        ">🗑️</span>
+    </div>
+</div>
+<img>
+<!--페이징-->
+<th:block th:each="page :${#numbers.sequence(1,totalPage)}">
+    <a th:href="@{/list/page/{p}(p=${page})}" th:text="${page}"></a>
+</th:block>
+
+</div>
+
+</body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="/main.css" rel="stylesheet">
+</head>
+</html>

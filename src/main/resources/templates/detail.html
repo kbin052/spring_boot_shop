@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="/main.css" rel="stylesheet">
+</head>
+<body>
+    <input type="hidden" id="id" th:value="${item.id}">
+    <div class="nav" th:replace="~{ nav.html::navbar }"></div>
+
+    <div class="detail">
+        <h4>상세페이지</h4>
+        <img src="https://placehold.co/300">
+        <div th:text="${item.id}">id</div>
+        <div th:text="${item.title}">상품</div>
+        <p th:text="${item.price} + 원">금액</p>
+    </div>
+
+</body>
+</html>
