@@ -1,5 +1,8 @@
 package com.apple.shop.item; // 파일 위치 ( 경로 )
 
+import com.apple.shop.comment.CommRepository;
+import com.apple.shop.comment.CommService;
+import com.apple.shop.comment.Comment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +21,7 @@ public class ItemController {
 
     private final ItemRepository itemRepository;
     private final ItemService itemService;
+    private final CommRepository commRepository;
    // 메인 리스트
     @GetMapping("/list")
     String list(Model model){
@@ -46,6 +50,9 @@ public class ItemController {
     // 상세페이지 접속
     @GetMapping("/detail/{id}")
     String detail(@PathVariable Long id, Model model) {
+
+        List<Comment> res =  commRepository.findAllByParentId(id);
+                model .addAttribute("comm", res);
 
             Optional<Item> result = itemRepository.findById(id); // Optional: 변수가 비어있을수도 있을 수도 있음
             if (result.isPresent()) { // isPresent 값이 있으면
@@ -99,6 +106,7 @@ public class ItemController {
         model.addAttribute("totalPage",result.getTotalPages());
         return "list.html";
     }
+
 
 
 //    //url 연결

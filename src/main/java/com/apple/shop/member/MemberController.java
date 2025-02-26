@@ -30,7 +30,7 @@ public class MemberController {
         member.setPassword(hash);
         member.setDisplayName(displayName);
         memberRepository.save(member);
-        return "redirect:/list";
+        return "redirect:/list/1";
     }
 
     //회원가입 페이지 이동

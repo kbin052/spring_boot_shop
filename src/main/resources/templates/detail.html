@@ -20,5 +20,16 @@
         <p th:text="${item.price} + 원">금액</p>
     </div>
 
+
+<form action="/addComment" method="POST">
+    <input name ="content" placeholder="내용">
+    <input name ="parent" th:value="${item.id}">
+    <button type="submit">전송</button>
+</form>
+<!--    <h4>댓글</h4>-->
+<!--    <div class="detail" th:each=" i :${res}">-->
+<!--        <p th:text="${i.res}"></p>-->
+<!--    </div>-->
+
 </body>
 </html>
