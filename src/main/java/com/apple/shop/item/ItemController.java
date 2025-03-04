@@ -4,15 +4,25 @@ import com.apple.shop.comment.CommRepository;
 import com.apple.shop.comment.CommService;
 import com.apple.shop.comment.Comment;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
@@ -22,7 +32,10 @@ public class ItemController {
     private final ItemRepository itemRepository;
     private final ItemService itemService;
     private final CommRepository commRepository;
-   // 메인 리스트
+    private final String uploadDir = System.getProperty("user.dir") // 프로젝트 경로를 가져옴
+            + "\\src\\main\\resources\\static\\files"; // 파일이 저장될 폴더의 경로
+
+    // 메인 리스트
     @GetMapping("/list")
     String list(Model model){
        List<Item> result =  itemRepository.findAll();
@@ -40,27 +53,28 @@ public class ItemController {
     }
 
     // 글쓰기 추가 로직
+    @SneakyThrows
     @PostMapping("/add")
-    String addPost(String title, Long price, String imgUrl){
+    String addPost(String title, Long price,@RequestParam("imageFile") MultipartFile file) {
 
-        itemService.saveItem(title,price,imgUrl);
-        return "redirect:/list/page/1";
-    }
+        itemService.saveItem(title, price, file);
+            return "redirect:/list/page/1";
+        }
 
     // 상세페이지 접속
     @GetMapping("/detail/{id}")
     String detail(@PathVariable Long id, Model model) {
 
         List<Comment> res =  commRepository.findAllByParentId(id);
-                model .addAttribute("comm", res);
+                model.addAttribute("comm", res);
 
-            Optional<Item> result = itemRepository.findById(id); // Optional: 변수가 비어있을수도 있을 수도 있음
+            Optional <Item> result = itemRepository.findById(id); // Optional: 변수가 비어있을수도 있을 수도 있음
             if (result.isPresent()) { // isPresent 값이 있으면
-                model .addAttribute("item", result.get());
+                model.addAttribute("item", result.get());
                 System.out.println(result.get());
                 return "/detail.html";
             } else {
-                return "redirect:/list/detail/1";
+                return "redirect:/detail/"+id;
             }
     }
 
@@ -86,7 +100,7 @@ public class ItemController {
 
         itemService.modfItem(id,title,price);
         System.out.println("수정완료");
-        return "redirect:/list";
+        return "redirect:/detail/"+id;
     }
     // 삭제하기
     @DeleteMapping("/item")
@@ -107,7 +121,42 @@ public class ItemController {
         return "list.html";
     }
 
+    //프로젝트 재시작 없이 바로 이미지 보이기
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<Resource> getFile(@PathVariable String fileName) {
+        try {
+            Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+            Resource resource = new UrlResource(filePath.toUri());
 
+            if (resource.exists() || resource.isReadable()) {
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    // 파일 삭제
+    @DeleteMapping("/delete/{fileName}")
+    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
+        try {
+            Path filePath = Paths.get(uploadDir + fileName);
+            File file = filePath.toFile();
+
+            if (file.exists()) {
+                Files.delete(filePath); // 파일 삭제
+                return ResponseEntity.ok("파일 삭제 성공: " + fileName);
+            } else {
+                return ResponseEntity.badRequest().body("파일이 존재하지 않습니다: " + fileName);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body("파일 삭제 중 오류 발생");
+        }
+    }
 
 //    //url 연결
 //    @GetMapping("presigned-url")
